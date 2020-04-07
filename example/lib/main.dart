@@ -26,6 +26,11 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       platformVersion = await FlutterMopub.platformVersion;
+      FlutterMopub.initilize(adUnitId: null).then((res){
+        print(res);
+      }).catchError((err){
+        print(err);
+      });
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }
