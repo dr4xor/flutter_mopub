@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import MoPub
 
 public class SwiftFlutterMopubPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {

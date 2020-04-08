@@ -96,7 +96,7 @@ class FlutterMopubPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
             }
             if(customData != null){
                 if(customData.toByteArray().size > 8 * 1000){
-                    Log.i(FlutterMopubPlugin.TAG , "cusom data size exceeds mopub recommended size of 8kb")
+                    Log.i(TAG , "cusom data size exceeds mopub recommended size of 8kb")
                 }
             }
             result.success(RewardedVideoAd.instance?.show(adUnitId, call.argument<Any>("customData") as String?))

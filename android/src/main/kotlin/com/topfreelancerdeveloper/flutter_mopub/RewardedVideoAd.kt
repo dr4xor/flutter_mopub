@@ -51,19 +51,7 @@ class RewardedVideoAd private constructor(private val activity: Activity, privat
         //0 = first time load , 1 = load after failure, 2 = load after ratelimiting lifted, 3 = load after closed
         //-1 = already trying to load or loaded or its on screen , -2 = rate limitation
         if (adStates.containsKey(adUnitId)) {
-            if (!applyRateLimiting) {
-                if (adStates[adUnitId] == AdStates.FAILURE) {
-                    MoPubRewardedVideos.loadRewardedVideo(adUnitId)
-                    adStates[adUnitId] = AdStates.LOADSTARTED
-                    return 1
-                }
-                if (adStates[adUnitId] == AdStates.CLOSED) {
-                    MoPubRewardedVideos.loadRewardedVideo(adUnitId)
-                    adStates[adUnitId] = AdStates.LOADSTARTED
-                    return 3
-                }
-                return -1
-            } else {
+            if(applyRateLimiting) {
                 if (adStates[adUnitId] == AdStates.RATELIMITED) {
                     return -2
                 }
@@ -72,8 +60,18 @@ class RewardedVideoAd private constructor(private val activity: Activity, privat
                     adStates[adUnitId] = AdStates.LOADSTARTED
                     return 2
                 }
-                return -1
             }
+            if (adStates[adUnitId] == AdStates.FAILURE) {
+                MoPubRewardedVideos.loadRewardedVideo(adUnitId)
+                adStates[adUnitId] = AdStates.LOADSTARTED
+                return 1
+            }
+            if (adStates[adUnitId] == AdStates.CLOSED) {
+                MoPubRewardedVideos.loadRewardedVideo(adUnitId)
+                adStates[adUnitId] = AdStates.LOADSTARTED
+                return 3
+            }
+            return -1
         } else {
             MoPubRewardedVideos.loadRewardedVideo(adUnitId)
             adStates[adUnitId] = AdStates.LOADSTARTED
