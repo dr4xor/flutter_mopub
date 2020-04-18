@@ -1,0 +1,36 @@
+workflows:
+  default-workflow:
+    name: Default Workflow
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - |
+        rm -f ~/.android/debug.keystore
+        keytool -genkeypair \
+          -alias androiddebugkey \
+          -keypass android \
+          -keystore ~/.android/debug.keystore \
+          -storepass android \
+          -dname 'CN=Android Debug,O=Android,C=US' \
+          -keyalg 'RSA' \
+          -keysize 2048 \
+          -validity 10000
+      - |
+        echo "flutter.sdk=$HOME/programs/flutter" > "$FCI_BUILD_DIR/example/android/local.properties"
+      - cd example
+      - flutter packages pub get
+      - flutter build apk --debug
+    artifacts:
+      - example/build/**/outputs/**/*.apk
+      - example/build/**/outputs/**/*.aab
+      - example/build/**/outputs/**/mapping.txt
+      - example/build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - example/build/web.zip
+      - flutter_drive.log
+    publishing:
+      email:
+        recipients:
+          - topfreelancerdeveloper@gmail.com
