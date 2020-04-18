@@ -1,3 +1,6 @@
+# Automatically generated on 2020-04-18 UTC from https://codemagic.io/app/5e9ac1cd7af7f38db72f5fdf/settings
+# Note that this configuration is not an exact match to UI settings. Review and adjust as necessary.
+
 workflows:
   default-workflow:
     name: Default Workflow
@@ -7,6 +10,7 @@ workflows:
       cocoapods: default
     scripts:
       - |
+        # set up debug keystore
         rm -f ~/.android/debug.keystore
         keytool -genkeypair \
           -alias androiddebugkey \
@@ -18,18 +22,15 @@ workflows:
           -keysize 2048 \
           -validity 10000
       - |
+        # set up local properties
         echo "flutter.sdk=$HOME/programs/flutter" > "$FCI_BUILD_DIR/example/android/local.properties"
-      - cd example
-      - flutter packages pub get
-      - flutter build apk --debug
+      - cd example && flutter packages pub get
+      - cd example && flutter build apk --debug
     artifacts:
       - example/build/**/outputs/**/*.apk
       - example/build/**/outputs/**/*.aab
       - example/build/**/outputs/**/mapping.txt
-      - example/build/ios/ipa/*.ipa
-      - /tmp/xcodebuild_logs/*.log
-      - example/build/web.zip
-      - flutter_drive.log
+      - example/flutter_drive.log
     publishing:
       email:
         recipients:
