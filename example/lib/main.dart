@@ -1,12 +1,18 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_mopub/flutter_mopub.dart';
 
-const String ad_unit_id_test = '920b6145fb1546cf8b5cf2ac34638bb7';
-
-void main() => runApp(MyApp());
+void main() {
+  FlutterMopub.initilize(adUnitId: FlutterMopub.testAdUnitId)
+      .then((didInitilize) {
+    if (didInitilize) {
+      runApp(MyApp());
+    } else {
+      print('Mopub plugin initilize error');
+    }
+  });
+}
 
 class MyApp extends StatefulWidget {
   @override
@@ -14,43 +20,37 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
-
+  RewardedVideoAdEvent _event;
   @override
   void initState() {
     super.initState();
-    initPlatformState();
+    loadAndShowAd();
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    try {
-      platformVersion = await FlutterMopub.platformVersion;
-      FlutterMopub.initilize(adUnitId: ad_unit_id_test).then((res) async {
-        print('result : ' + res.toString());
-        await FlutterMopub.rewardedVideoAdInstance.setRewardedVideoListener(listener: (event , arguments) async {
-          print(event.toString());
-          if(event == RewardedVideoAdEvent.SUCCESS){
-            print(arguments);
-            print( await FlutterMopub.rewardedVideoAdInstance.show(adUnitId: ad_unit_id_test));
-            return;
-          }
-          print(arguments);
-        });
-        print( await FlutterMopub.rewardedVideoAdInstance.load(adUnitId: ad_unit_id_test));
-      }).catchError((err){
-        print('error : ' + err.toString());
+  Future<void> loadAndShowAd() async {
+    //Add listener to catch events
+    FlutterMopub.rewardedVideoAdInstance.setRewardedVideoListener(
+        listener: (event, args) {
+      setState(() {
+        _event = event;
       });
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
-    if (!mounted) return;
-
-    setState(() {
-      _platformVersion = platformVersion;
+      if (event == RewardedVideoAdEvent.SUCCESS) {
+        //ad is loaded now show the add
+        FlutterMopub.rewardedVideoAdInstance
+            .show(adUnitId: FlutterMopub.testAdUnitId);
+      }
     });
+
+    //load ad
+    int loadOutcome = await FlutterMopub.rewardedVideoAdInstance
+        .load(adUnitId: FlutterMopub.testAdUnitId);
+    if (loadOutcome >= 0) {
+      //successfully added Ad to loading queue
+      print('ad is in loading queue');
+    } else {
+      //failed to add Ad to loading queue
+      print('failed to load ad : errCode = $loadOutcome');
+    }
   }
 
   @override
@@ -58,10 +58,10 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Plugin example app'),
+          title: const Text('MoPub example app'),
         ),
         body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+          child: Text('Ad Status: $_event'),
         ),
       ),
     );

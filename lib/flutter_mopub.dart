@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 class FlutterMopub {
   static const MethodChannel _channel = const MethodChannel('flutter_mopub');
+  static const testAdUnitId = '920b6145fb1546cf8b5cf2ac34638bb7';
   static bool _isInitilized = false;
 
   static bool get isInitilized {
@@ -21,12 +22,11 @@ class FlutterMopub {
   static _RewardedVideoAd get rewardedVideoAdInstance {
     return _rewardedVideoAdInstance;
   }
-
-  static Future<String> get platformVersion async {
-    final String version = await _channel.invokeMethod('getPlatformVersion');
-    return version;
-  }
-
+  /// Initilizes the plugin
+  /// 
+  /// Use  any valid ad unit once per app’s lifecycle, typically on app launch
+  /// 
+  /// This method must be called before any operation is attempted.
   static Future<bool> initilize({@required String adUnitId}) async {
     assert(adUnitId != null && adUnitId.isNotEmpty);
     bool inited =
@@ -83,13 +83,18 @@ class _RewardedVideoAd {
     }
     print('unimplemented event : $event');
   }
-
+  ///Default is true
+  ///More info about Rate Limiting on Mopub docs
+  ///
+  ///https://developers.mopub.com/publishers/android/rate-limiting/
   Future<void> setApplyRateLimiting(bool apply) async {
     assert(FlutterMopub.isInitilized != false);
     assert(apply != null);
     await _channel.invokeMethod<void>('setApplyRateLimiting', {'apply': apply});
   }
-
+  ///Add listener for rewarded video events
+  ///
+  ///Check events by RewardedVideoAdEvent enum
   Future<void> setRewardedVideoListener(
       {@required
           Function(RewardedVideoAdEvent event, dynamic arguments)
@@ -98,18 +103,53 @@ class _RewardedVideoAd {
     _listener = listener;
     await _channel.invokeMethod('setRewardedVideoListener', {'enable': true});
   }
-
+  /// Load an ad
+  /// 
+  /// use [await rewardedVideoAdInstance.load('adUnitId') >= 0]
+  /// 
+  /// for a successful load condition.
+  /// 
+  /// returns an integer code which meanings are as follows
+  /// 
+  /// success :
+  /// 
+  /// [0] : First time loading ad
+  /// 
+  /// [1] : Load after previous failure
+  /// 
+  /// [2] : Load after Rate Limiting lifted
+  /// 
+  /// [3] : Load after ad is closed
+  /// 
+  /// failure :
+  /// 
+  /// [-1] : Already in loading queue
+  /// 
+  /// [-2] : Rate Limiting
   Future<int> load({@required String adUnitId}) {
-    //0 = first time load , 1 = load after failure, 2 = load after ratelimiting lifted, 3 = load after closed
-    //-1 = already trying to load or loaded or its on screen , -2 = rate limitation
     assert(FlutterMopub.isInitilized != false);
     assert(adUnitId != null && adUnitId.isNotEmpty);
     return _channel
         .invokeMethod<int>('loadRewardedVideo', {'adUnitId': adUnitId});
   }
-
+  /// Show an ad
+  /// 
+  /// use [await rewardedVideoAdInstance.show('adUnitId') >= 0]
+  /// 
+  /// for a successful show condition.
+  /// 
+  /// returns an integer code which meanings are as follows
+  /// 
+  /// success :
+  /// 
+  /// [0] : Showed
+  /// 
+  /// [1] : Ad is already showing
+  /// 
+  /// failure :
+  /// 
+  /// [-1] : Ad not loaded
   Future<int> show({@required String adUnitId, String customData}) {
-    //0 = show , 1 = isShowing , -1 = not loaded
     assert(FlutterMopub.isInitilized != false);
     assert(adUnitId != null && adUnitId.isNotEmpty);
     return _channel.invokeMethod<int>(
