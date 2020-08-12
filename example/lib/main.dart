@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mopub/flutter_mopub.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   FlutterMopub.initilize(adUnitId: FlutterMopub.testAdUnitId)
       .then((didInitilize) {
     if (didInitilize) {
@@ -29,11 +30,14 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> loadAndShowAd() async {
     //Add listener to catch events
-    FlutterMopub.rewardedVideoAdInstance.setRewardedVideoListener(
+    FlutterMopub.rewardedVideoAdInstance.addRewardedVideoListener(
         listener: (event, args) {
+      print(event);
       setState(() {
         _event = event;
       });
+      print(args['adUnitIds']); //for RewardedVideoAdEvent.SUCCESS
+      print(args['adUnitId']); //for rest of events
       if (event == RewardedVideoAdEvent.SUCCESS) {
         //ad is loaded now show the add
         FlutterMopub.rewardedVideoAdInstance

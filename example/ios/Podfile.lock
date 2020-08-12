@@ -1,0 +1,36 @@
+PODS:
+  - Flutter (1.0.0)
+  - flutter_mopub (0.0.1):
+    - Flutter
+    - mopub-ios-sdk
+  - mopub-ios-sdk (5.13.1):
+    - mopub-ios-sdk/MoPubSDK (= 5.13.1)
+  - mopub-ios-sdk/Core (5.13.1)
+  - mopub-ios-sdk/MoPubSDK (5.13.1):
+    - mopub-ios-sdk/Core
+    - mopub-ios-sdk/NativeAds
+  - mopub-ios-sdk/NativeAds (5.13.1):
+    - mopub-ios-sdk/Core
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - flutter_mopub (from `.symlinks/plugins/flutter_mopub/ios`)
+
+SPEC REPOS:
+  trunk:
+    - mopub-ios-sdk
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  flutter_mopub:
+    :path: ".symlinks/plugins/flutter_mopub/ios"
+
+SPEC CHECKSUMS:
+  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
+  flutter_mopub: b1702bed860cf67732ee3679dde2ba96a415f7ff
+  mopub-ios-sdk: 18af57aaf79d0ea3d0232b43b2d603ae8ea8e826
+
+PODFILE CHECKSUM: fe0e1ee7f3d1f7d00b11b474b62dd62134535aea
+
+COCOAPODS: 1.9.1
