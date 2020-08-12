@@ -32,6 +32,7 @@ class FlutterMopub {
     bool inited =
         await _channel.invokeMethod<bool>('initilize', {'adUnitId': adUnitId});
     _isInitilized = inited;
+    await _channel.invokeMethod('setRewardedVideoListener', {'enable': true});
     return _isInitilized;
   }
 }
@@ -49,13 +50,12 @@ enum RewardedVideoAdEvent {
 class _RewardedVideoAd {
   final MethodChannel _channel;
 
-  Function _listener;
+  List<Function> _listeners = [];
 
   _RewardedVideoAd(this._channel) {
     _channel.setMethodCallHandler((call) async {
-      if (_listener != null) {
-        _listener(_convertStringToEvent(call.method), call.arguments);
-      }
+      RewardedVideoAdEvent event = _convertStringToEvent(call.method);
+      _listeners.forEach((listener) => listener(event, call.arguments));
     });
   }
 
@@ -82,6 +82,7 @@ class _RewardedVideoAd {
       return RewardedVideoAdEvent.COMPLETED;
     }
     print('unimplemented event : $event');
+    return null;
   }
   ///Default is true
   ///More info about Rate Limiting on Mopub docs
@@ -95,13 +96,24 @@ class _RewardedVideoAd {
   ///Add listener for rewarded video events
   ///
   ///Check events by RewardedVideoAdEvent enum
-  Future<void> setRewardedVideoListener(
+  ///
+  ///Returns an Id.
+  ///
+  ///Use this Id for listener removal.
+  int addRewardedVideoListener(
       {@required
           Function(RewardedVideoAdEvent event, dynamic arguments)
               listener}) async {
     assert(FlutterMopub.isInitilized != false);
-    _listener = listener;
-    await _channel.invokeMethod('setRewardedVideoListener', {'enable': true});
+    _listeners.add(listener);
+    return _listeners.length -1 ;
+  }
+  ///Remove listener for rewarded video events
+  bool removeRewardedVideoListener(int id){
+    assert(FlutterMopub.isInitilized != false);
+    if(id < 0 || id >= _listeners.length) return false;
+    _listeners.removeAt(id);
+    return true;
   }
   /// Load an ad
   /// 
