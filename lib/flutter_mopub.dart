@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 class FlutterMopub {
-  static const MethodChannel _channel = const MethodChannel('flutter_mopub');
+  static MethodChannel _channel = const MethodChannel('flutter_mopub')..setMethodCallHandler(_handleMethodCall);
   static const testAdUnitId = '920b6145fb1546cf8b5cf2ac34638bb7';
   static bool _isInitilized = false;
 
@@ -16,11 +16,27 @@ class FlutterMopub {
     return _isInitilized;
   }
 
-  static final _RewardedVideoAd _rewardedVideoAdInstance =
-      _RewardedVideoAd(_channel);
+  static final RewardedVideoAd _rewardedVideoAdInstance =
+      RewardedVideoAd._(_channel);
 
-  static _RewardedVideoAd get rewardedVideoAdInstance {
+  static RewardedVideoAd get rewardedVideoAdInstance {
     return _rewardedVideoAdInstance;
+  }
+
+  static final PersonalInfoManager _personalInfoManager =
+      PersonalInfoManager._(_channel);
+  static PersonalInfoManager getPersonalInformationManager() {
+    return _personalInfoManager;
+  }
+
+  /// Handle incoming method calls
+  static Future _handleMethodCall(MethodCall call) async {
+    var m = call.method;
+    if(m.startsWith('PersonalInfoManager.')) {
+      _personalInfoManager?._onMethodCall(call);
+      return;
+    }
+    rewardedVideoAdInstance?._onMethodCall(call);
   }
 
   /// Initilizes the plugin
@@ -48,16 +64,16 @@ enum RewardedVideoAdEvent {
   COMPLETED,
 }
 
-class _RewardedVideoAd {
+class RewardedVideoAd {
   final MethodChannel _channel;
 
   List<Function> _listeners = [];
 
-  _RewardedVideoAd(this._channel) {
-    _channel.setMethodCallHandler((call) async {
-      RewardedVideoAdEvent event = _convertStringToEvent(call.method);
-      _listeners.forEach((listener) => listener(event, call.arguments));
-    });
+  RewardedVideoAd._(this._channel);
+
+  void _onMethodCall(MethodCall call) {
+    RewardedVideoAdEvent event = _convertStringToEvent(call.method);
+    _listeners.forEach((listener) => listener(event, call.arguments));
   }
 
   RewardedVideoAdEvent _convertStringToEvent(String event) {
@@ -171,5 +187,47 @@ class _RewardedVideoAd {
     assert(adUnitId != null && adUnitId.isNotEmpty);
     return _channel.invokeMethod<int>(
         'showRewardedVideo', {'adUnitId': adUnitId, 'customData': customData});
+  }
+}
+
+class PersonalInfoManager{
+  final MethodChannel _channel;
+
+  Function onConsentDialogLoaded;
+  Function(String errorCode) onConsentDialogLoadFailed;
+
+  PersonalInfoManager._(this._channel);
+
+  void _onMethodCall(MethodCall call) {
+    print(call.method);
+    var method = call.method.substring(call.method.indexOf('.') + 1);
+    print(method);
+    if(method == "onConsentDialogLoaded") {
+      onConsentDialogLoaded?.call();
+    }
+    if(method == "onConsentDialogLoadFailed") {
+      onConsentDialogLoadFailed?.call(call.arguments['moPubErrorCode']);
+    }
+  }
+
+  Future<bool> shouldShowConsentDialog() async {
+    assert(FlutterMopub.isInitilized);
+    return _channel.invokeMethod<bool>('shouldShowConsentDialog');
+  }
+
+  Future<void> loadConsentDialog (
+      Function onConsentDialogLoaded,
+      Function(String errorCode) onConsentDialogLoadFailed) async {
+    assert(FlutterMopub.isInitilized);
+
+    this.onConsentDialogLoaded = onConsentDialogLoaded;
+    this.onConsentDialogLoadFailed = onConsentDialogLoadFailed;
+
+    return _channel.invokeMethod<void>('loadConsentDialog');
+  }
+
+  Future<bool> showConsentDialog() async {
+    assert(FlutterMopub.isInitilized != false);
+    return _channel.invokeMethod<bool>('showConsentDialog');
   }
 }
