@@ -6,6 +6,8 @@ import android.util.Log
 import com.mopub.common.MediationSettings
 import com.mopub.common.MoPub
 import com.mopub.common.SdkConfiguration
+import com.mopub.common.privacy.ConsentDialogListener
+import com.mopub.mobileads.MoPubErrorCode
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -94,12 +96,44 @@ class FlutterMopubPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
                 result.error("10", "ad_unit_id is null or empty", null)
                 return
             }
-            if(customData != null){
-                if(customData.toByteArray().size > 8 * 1000){
-                    Log.i(TAG , "cusom data size exceeds mopub recommended size of 8kb")
+            if (customData != null) {
+                if (customData.toByteArray().size > 8 * 1000) {
+                    Log.i(TAG, "cusom data size exceeds mopub recommended size of 8kb")
                 }
             }
             result.success(RewardedVideoAd.instance?.show(adUnitId, call.argument<Any>("customData") as String?))
+        } else if ("shouldShowConsentDialog" == call.method) {
+            val personalInfoManager = MoPub.getPersonalInformationManager()
+            if (personalInfoManager == null) {
+                result.error("10", "PersonalInformationManager is not available", null)
+                return
+            }
+            result.success(personalInfoManager.shouldShowConsentDialog());
+        } else if ("loadConsentDialog" == call.method) {
+            val personalInfoManager = MoPub.getPersonalInformationManager();
+            if (personalInfoManager == null) {
+                result.error("10", "PersonalInformationManager is not available", null)
+                return
+            }
+            val consentDialogListener = object : ConsentDialogListener {
+                override fun onConsentDialogLoaded() {
+                    channel.invokeMethod("PersonalInfoManager.onConsentDialogLoaded", null)
+                }
+
+                override fun onConsentDialogLoadFailed(moPubErrorCode: MoPubErrorCode) {
+                    channel.invokeMethod("PersonalInfoManager.onConsentDialogLoadFailed", mapOf("moPubErrorCode" to moPubErrorCode.name))
+                }
+            }
+            personalInfoManager.loadConsentDialog(consentDialogListener)
+            result.success(true)
+        } else if ("showConsentDialog" == call.method) {
+            val personalInfoManager = MoPub.getPersonalInformationManager();
+            if (personalInfoManager == null) {
+                result.error("10", "PersonalInformationManager is not available", null)
+                return
+            }
+            result.success(personalInfoManager.showConsentDialog());
+
         } else {
             result.notImplemented()
         }
