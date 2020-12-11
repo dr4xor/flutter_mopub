@@ -165,9 +165,7 @@ class RewardedVideoAd private constructor(private val activity: Activity, privat
     private fun argumentsMap(vararg args: Any): Map<String, Any> {
         val arguments = HashMap<String, Any>()
         var i = 0
-        Log.d(FlutterMopubPlugin.TAG , "argsSize = ${args.size}")
         while (i < args.size) {
-            Log.d(FlutterMopubPlugin.TAG , "currenIndex = $i")
             arguments[args[i].toString()] = args[i + 1]
             i += 2
         }
