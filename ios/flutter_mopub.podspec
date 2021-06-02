@@ -16,10 +16,7 @@ A new flutter plugin project.
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
-  s.dependency 'mopub-ios-sdk'
-  s.dependency 'MoPub-AdColony-Adapters'
-  s.dependency 'MoPub-AdMob-Adapters'
-  s.dependency 'MoPub-TapJoy-Adapters'
+  s.dependency 'mopub-ios-sdk', '5.16.2'
   s.ios.deployment_target = '9.0'
   s.static_framework = true
 end
